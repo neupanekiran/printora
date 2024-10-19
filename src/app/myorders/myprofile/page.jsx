@@ -1,13 +1,12 @@
-import Navbar from '@/app/Navbar'
 import React from 'react'
+import Navbar from '../../Navbar'
 
 function page() {
   return (
-    <>
-    <Navbar/>
     <div>
-      this will be the profile page yet to be implemented
-    </div></>
+      <Navbar/>
+      this will be the profile page
+    </div>
   )
 }
 

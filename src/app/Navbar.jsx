@@ -25,10 +25,10 @@ function Navbar() {
       <ul
         tabIndex={0}
         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-4 shadow-lg absolute top-0 left-0">
-        <Link href={"/myorders/myprofile"}><li><a>My Profile</a></li></Link>
-        <Link href={"/myorders"}><li><a>My orders</a></li></Link>
-        <Link href={"/myorders/transactions"}><li><a>Transactions</a></li></Link>
-        <li><a>Login/Logout</a></li>
+        <Link href={"/myorders/myprofile"}><li>My Profile</li></Link>
+        <Link href={"/myorders"}><li>My orders</li></Link>
+        <Link href={"/myorders/transactions"}><li>Transactions</li></Link>
+        <li>Login/Logout</li>
 
       </ul>
     </div>

@@ -1,13 +1,14 @@
-import Navbar from '@/app/Navbar'
 import React from 'react'
+import Navbar from '../../Navbar'
 
 function page() {
   return (
-    <>
-    <Navbar/>
     <div>
-      a list of transactions will show up here
-    </div></>
+      <Navbar/>
+      no transactions yet 
+      transactions will show up here 
+
+    </div>
   )
 }
 
