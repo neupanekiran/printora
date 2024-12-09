@@ -31,7 +31,7 @@ function Navbar() {
               </svg>
             </div>
             <ul tabIndex={0} className="menu menu-sm dropdown-content bg-base-100 rounded-box z-50 mt-3 w-52 p-4 shadow-lg absolute top-0 left-0">
-              <Link href={"/myorders/myprofile"}><li>My Profile</li></Link>
+              <Link href={"/myprofile"}><li>My Profile</li></Link>
               <Link href={"/myorders"}><li>My orders</li></Link>
               <Link href={"/myorders/transactions"}><li>Transactions</li></Link>
               <li><button onClick={handleLogout}>Logout</button></li>

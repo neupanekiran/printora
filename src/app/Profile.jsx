@@ -1,12 +1,12 @@
 import React from 'react'
 
-function profile() {
+function Profile() {
   return (
     <div>
       <div className="card bg-neutral text-neutral-content w-96">
   <div className="card-body items-center text-center">
     <h1 className="card-title">Profile</h1>
-    <p>hi there ${kachuesh}</p>
+    <p>hi there</p>
     <div className="card-actions justify-end">
       <button className="btn btn-primary">change your name</button>
     </div>
@@ -28,4 +28,4 @@ function profile() {
   )
 }
 
-export default profile
+export default Profile;
