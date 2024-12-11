@@ -1,14 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { FcGoogle } from "react-icons/fc";
-import { useRouter } from "next/navigation"; // For navigation in Next.js
-import { auth, googleProvider } from "../firebase/firebaseconfig";
+import { useRouter } from "next/navigation";
+import { auth, db, googleProvider } from "../firebase/firebaseconfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
 } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 const Page = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -17,8 +17,9 @@ const Page = () => {
     email: "",
     password: "",
     confirmPassword: "",
+    phone: "",
   });
-  const router = useRouter(); // For navigation
+  const router = useRouter();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -27,9 +28,7 @@ const Page = () => {
 
   const validateName = (name) => /^[A-Za-z\s]*$/.test(name);
   const validatePassword = (password) =>
-    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
-      password
-    );
+    /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(password);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -39,7 +38,11 @@ const Page = () => {
       return;
     }
 
-    if (!formData.email || !formData.password || (!isLogin && !formData.name)) {
+    if (
+      !formData.email ||
+      !formData.password ||
+      (!isLogin && (!formData.name || !formData.phone))
+    ) {
       alert("All fields are required.");
       return;
     }
@@ -60,11 +63,21 @@ const Page = () => {
       if (isLogin) {
         // Login
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
-
       } else {
         // Signup
-        await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-   
+        const userCredential = await createUserWithEmailAndPassword(
+          auth,
+          formData.email,
+          formData.password
+        );
+
+        // Save additional data to Firestore
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), {
+          name: formData.name,
+          email: formData.email,
+          phone: formData.phone,
+        });
       }
       router.push("/"); // Redirect to home
     } catch (error) {
@@ -74,7 +87,21 @@ const Page = () => {
 
   const handleGoogleLogin = async () => {
     try {
-      await signInWithPopup(auth, googleProvider);
+      const userCredential = await signInWithPopup(auth, googleProvider);
+      const user = userCredential.user;
+
+      // Add default name and phone if not available (example: after Google Sign-in)
+      const userDocRef = doc(db, "users", user.uid);
+      await setDoc(
+        userDocRef,
+        {
+          name: user.displayName || "Google User",
+          email: user.email,
+          phone: "",
+        },
+        { merge: true }
+      );
+
       alert("Google Login Successful!");
       router.push("/"); // Redirect to home
     } catch (error) {
@@ -146,18 +173,6 @@ const Page = () => {
             >
               Login
             </button>
-            <div className="flex items-center justify-center my-4">
-              <hr className="w-1/3 border-neutral-400" />
-              <span className="px-2 text-neutral-500">OR</span>
-              <hr className="w-1/3 border-neutral-400" />
-            </div>
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="flex items-center justify-center w-full px-4 py-2 text-neutral-800 bg-neutral-100 dark:bg-neutral-700 rounded-lg border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600"
-            >
-              <FcGoogle className="mr-2 text-xl" /> Login with Google
-            </button>
           </form>
 
           {/* Signup Form */}
@@ -193,6 +208,17 @@ const Page = () => {
             </div>
             <div className="mb-4">
               <input
+                type="text"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
+                required
+              />
+            </div>
+            <div className="mb-4">
+              <input
                 type="password"
                 name="password"
                 placeholder="Password"
@@ -218,18 +244,6 @@ const Page = () => {
               className="w-full px-4 py-2 text-white bg-blue-500 dark:bg-blue-600 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
             >
               Signup
-            </button>
-            <div className="flex items-center justify-center my-4">
-              <hr className="w-1/3 border-neutral-400" />
-              <span className="px-2 text-neutral-500">OR</span>
-              <hr className="w-1/3 border-neutral-400" />
-            </div>
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              className="flex items-center justify-center w-full px-4 py-2 text-neutral-800 bg-neutral-100 dark:bg-neutral-700 rounded-lg border border-neutral-300 dark:border-neutral-600 hover:bg-neutral-200 dark:hover:bg-neutral-600"
-            >
-              <FcGoogle className="mr-2 text-xl" /> Signup with Google
             </button>
           </form>
         </div>
