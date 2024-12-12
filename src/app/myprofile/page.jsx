@@ -1,12 +1,11 @@
 import React from 'react'
-import Navbar from '../../Navbar'
 import Profile from './Profile'
+import Navbar from '../Navbar'
 function page() {
   return (
     <div>
       <Navbar/>
-      <Profile/>
-   
+      <Profile/>  
     </div>
   )
 }
