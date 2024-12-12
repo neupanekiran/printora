@@ -1,4 +1,4 @@
-import React from 'react'
+import React from 'react';
 
 function Profile() {
   return (
@@ -6,7 +6,7 @@ function Profile() {
       <div className="card bg-neutral text-neutral-content w-96">
   <div className="card-body items-center text-center">
     <h1 className="card-title">Profile</h1>
-    <p>hi there</p>
+    <p>hi there ${kachuesh}</p>
     <div className="card-actions justify-end">
       <button className="btn btn-primary">change your name</button>
     </div>
