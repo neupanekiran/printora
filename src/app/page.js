@@ -1,33 +1,39 @@
-'use client';
-
+"use client"
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { auth } from './firebase/firebaseconfig'; // Import Firebase config
+import { auth } from './firebase/firebaseconfig';
 import { onAuthStateChanged } from 'firebase/auth';
-import Navbar from './Navbar'
+import Navbar from './Navbar';
 import Shops from './Shops';
 
-function page() {
-  const [user, setUser] = useState(null); // State to store user authentication status
+export default function Home() {
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const router = useRouter();
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      if (currentUser) {
-        // If the user is logged in, set the user state
-        setUser(currentUser);
-      } else {
-        // If the user is not logged in, redirect to /login
+      setUser(currentUser);
+      setLoading(false);
+      
+      if (!currentUser) {
         router.push('/login');
       }
     });
 
-    return () => unsubscribe(); // Cleanup the listener on component unmount
+    return () => unsubscribe();
   }, [router]);
 
-  if (user === null) {
-    // Show loading state while checking authentication status
-    return <div>Loading...</div>;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-neutral-900">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
   }
 
   return (
@@ -37,5 +43,3 @@ function page() {
     </>
   );
 }
-
-export default page;

@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { auth, db, googleProvider } from "../firebase/firebaseconfig";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInWithPopup,
+  onAuthStateChanged
 } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
+import { FcGoogle } from "react-icons/fc";
 
 const Page = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -19,7 +21,18 @@ const Page = () => {
     confirmPassword: "",
     phone: "",
   });
+
   const router = useRouter();
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        router.push("/");
+      }
+    });
+
+    return () => unsubscribe();
+  }, [router]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -61,17 +74,14 @@ const Page = () => {
 
     try {
       if (isLogin) {
-        // Login
         await signInWithEmailAndPassword(auth, formData.email, formData.password);
       } else {
-        // Signup
         const userCredential = await createUserWithEmailAndPassword(
           auth,
           formData.email,
           formData.password
         );
 
-        // Save additional data to Firestore
         const user = userCredential.user;
         await setDoc(doc(db, "users", user.uid), {
           name: formData.name,
@@ -79,7 +89,6 @@ const Page = () => {
           phone: formData.phone,
         });
       }
-      router.push("/"); // Redirect to home
     } catch (error) {
       alert(error.message);
     }
@@ -90,10 +99,8 @@ const Page = () => {
       const userCredential = await signInWithPopup(auth, googleProvider);
       const user = userCredential.user;
 
-      // Add default name and phone if not available (example: after Google Sign-in)
-      const userDocRef = doc(db, "users", user.uid);
       await setDoc(
-        userDocRef,
+        doc(db, "users", user.uid),
         {
           name: user.displayName || "Google User",
           email: user.email,
@@ -101,151 +108,119 @@ const Page = () => {
         },
         { merge: true }
       );
-
-      alert("Google Login Successful!");
-      router.push("/"); // Redirect to home
     } catch (error) {
-      alert(error.message);
+      console.error("Google login error:", error.message);
+      alert("Failed to login with Google. Please try again.");
     }
   };
 
   return (
-    <div className="flex items-center justify-center h-screen bg-neutral-100 dark:bg-neutral-900 transition-colors duration-300">
-      <div className="w-full max-w-md p-8 bg-white dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 rounded-lg shadow-lg">
+    <div className="flex items-center justify-center min-h-screen bg-neutral-900 text-white transition-colors duration-300">
+      <div className="w-full max-w-md p-8 bg-neutral-800 text-neutral-100 rounded-lg shadow-2xl m-4">
         <div className="flex w-full mb-6">
           <button
             onClick={() => setIsLogin(true)}
-            className={`flex-1 text-center py-2 text-lg font-semibold transition-all ${
+            className={`flex-1 text-center py-2 text-lg font-semibold transition-all rounded-l-lg ${
               isLogin
-                ? "text-white bg-blue-500 dark:bg-blue-600"
-                : "text-neutral-800 dark:text-neutral-100"
+                ? "text-white bg-blue-600"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             Login
           </button>
           <button
             onClick={() => setIsLogin(false)}
-            className={`flex-1 text-center py-2 text-lg font-semibold transition-all ${
+            className={`flex-1 text-center py-2 text-lg font-semibold transition-all rounded-r-lg ${
               !isLogin
-                ? "text-white bg-blue-500 dark:bg-blue-600"
-                : "text-neutral-800 dark:text-neutral-100"
+                ? "text-white bg-blue-600"
+                : "text-neutral-400 hover:text-white"
             }`}
           >
             Signup
           </button>
         </div>
 
-        <div className="relative h-[30rem]">
-          {/* Login Form */}
-          <form
-            onSubmit={handleSubmit}
-            className={`absolute w-full transition-all duration-500 ${
-              isLogin
-                ? "opacity-100 translate-x-0 visible"
-                : "opacity-0 -translate-x-full invisible"
-            }`}
-          >
-            <div className="mb-4">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
-                required
-              />
-            </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 text-white bg-blue-500 dark:bg-blue-600 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
-            >
-              Login
-            </button>
-          </form>
-
-          {/* Signup Form */}
-          <form
-            onSubmit={handleSubmit}
-            className={`absolute w-full transition-all duration-500 ${
-              !isLogin
-                ? "opacity-100 translate-x-0 visible"
-                : "opacity-0 translate-x-full invisible"
-            }`}
-          >
-            <div className="mb-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Name"
-                value={formData.name}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <input
-                type="email"
-                name="email"
-                placeholder="Email Address"
-                value={formData.email}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <input
-                type="text"
-                name="phone"
-                placeholder="Phone Number"
-                value={formData.phone}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
-                required
-              />
-            </div>
-            <div className="mb-4">
-              <input
-                type="password"
-                name="password"
-                placeholder="Password"
-                value={formData.password}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
-                required
-              />
-            </div>
-            <div className="mb-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {!isLogin && (
+            <input
+              type="text"
+              name="name"
+              placeholder="Name"
+              value={formData.name}
+              onChange={handleInputChange}
+              className="w-full px-4 py-2 border rounded-lg bg-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+              required
+            />
+          )}
+          <input
+            type="email"
+            name="email"
+            placeholder="Email Address"
+            value={formData.email}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 border rounded-lg bg-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            value={formData.password}
+            onChange={handleInputChange}
+            className="w-full px-4 py-2 border rounded-lg bg-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            required
+          />
+          {!isLogin && (
+            <>
               <input
                 type="password"
                 name="confirmPassword"
                 placeholder="Confirm Password"
                 value={formData.confirmPassword}
                 onChange={handleInputChange}
-                className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 bg-neutral-100 dark:bg-neutral-700"
+                className="w-full px-4 py-2 border rounded-lg bg-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
                 required
               />
+              <input
+                type="tel"
+                name="phone"
+                placeholder="Phone Number"
+                value={formData.phone}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 border rounded-lg bg-neutral-700 text-white focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                required
+              />
+            </>
+          )}
+
+          <button
+            type="submit"
+            className="w-full px-4 py-2 text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            {isLogin ? "Login" : "Signup"}
+          </button>
+        </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-600"></div>
             </div>
-            <button
-              type="submit"
-              className="w-full px-4 py-2 text-white bg-blue-500 dark:bg-blue-600 rounded-lg hover:bg-blue-600 dark:hover:bg-blue-700 transition-colors"
-            >
-              Signup
-            </button>
-          </form>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-neutral-800 text-neutral-400">
+                Or continue with
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="mt-4 flex items-center justify-center w-full px-4 py-2 bg-neutral-700 hover:bg-neutral-600 text-white rounded-lg transition-colors"
+          >
+            <FcGoogle className="w-6 h-6 mr-2" />
+            Continue with Google
+          </button>
         </div>
       </div>
     </div>
