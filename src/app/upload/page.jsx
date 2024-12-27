@@ -1,5 +1,5 @@
 import React from 'react'
-import Upload from './Upload'
+import Upload from '../Upload'
 import Navbar from '../Navbar'
 
 function page() {

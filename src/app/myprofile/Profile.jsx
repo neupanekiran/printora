@@ -1,5 +1,4 @@
-"use client"; // Marks this component as a client component
-
+"use client";
 import React, { useState, useEffect } from "react";
 import { getAuth, onAuthStateChanged } from "firebase/auth";
 
