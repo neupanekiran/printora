@@ -34,7 +34,7 @@ export async function POST(request) {
       },
     });
 
-    // Email body content
+    // Email body contentx
     const emailBody = `
       <h1>Print Order Details</h1>
       <p><strong>Shop:</strong> ${shop}</p>
